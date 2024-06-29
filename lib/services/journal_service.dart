@@ -1,21 +1,26 @@
 import 'dart:convert';
+import 'package:flutter_webapi_first_course/models/journal.dart';
 import 'package:flutter_webapi_first_course/services/http_interceptors.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_interceptor/http/http.dart';
 
 class JournalService {
+  //Alterar localhost pelo ip
   static const String url = 'http://localhost:3000/';
-  static const String resource = "learnhttp/";
+
+  static const String resource = "journals/";
 
   String getUrl() => "$url$resource";
 
   http.Client client =
       InterceptedClient.build(interceptors: [LoggingInterceptor()]);
 
-  void register(String content) {
-    client.post(Uri.parse(getUrl()),
-        body: jsonEncode({"content": content}),
-        headers: {"Content-Type": "application/json"});
+  Future<bool> register(Journal journal) async {
+    String jsonJournal = json.encode(journal.toMap());
+    http.Response response = await client.post(Uri.parse(getUrl()),
+        headers: {"Content-Type": "application/json"}, body: jsonJournal);
+
+    return response.statusCode == 201;
   }
 
   Future<String> get() async {
