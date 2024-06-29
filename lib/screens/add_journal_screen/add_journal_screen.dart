@@ -37,8 +37,7 @@ class AddJournalScreen extends StatelessWidget {
     );
   }
 
-  String get getJournalDate =>
-      '${WeekDay(journal.createdAt.weekday).long.toLowerCase()}, ${journal.createdAt.day}  | ${journal.createdAt.month}  | ${journal.createdAt.year}  ';
+  String get getJournalDate => WeekDay(journal.createdAt).toString();
 
   registerJournal(BuildContext context) async {
     JournalService service = JournalService();
