@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webapi_first_course/helpers/weekday.dart';
 import 'package:flutter_webapi_first_course/models/journal.dart';
+import 'package:flutter_webapi_first_course/services/journal_service.dart';
 import 'package:uuid/uuid.dart';
 
 class JournalCard extends StatelessWidget {
@@ -81,6 +82,11 @@ class JournalCard extends StatelessWidget {
                   ),
                 ),
               ),
+              IconButton(
+                  onPressed: () {
+                    removeJournal(context);
+                  },
+                  icon: const Icon(Icons.delete))
             ],
           ),
         ),
@@ -130,6 +136,18 @@ class JournalCard extends StatelessWidget {
       } else if (value == null) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Houve uma falha ao registrar!")));
+      }
+    });
+  }
+
+  removeJournal(BuildContext context) {
+    JournalService service = JournalService();
+    service.delete(journal!.id).then((value) {
+      if (value) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Removido com sucesso!")));
+
+        refreshFunction();
       }
     });
   }
