@@ -6,7 +6,7 @@ import 'package:http_interceptor/http/http.dart';
 
 class JournalService {
   //Alterar localhost pelo ip
-  static const String url = 'http://localhost:3000/';
+  static const String url = 'http://192.168.0.9:3000/';
 
   static const String resource = "journals/";
 
