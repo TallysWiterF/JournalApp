@@ -1,24 +1,24 @@
 {
-  "learnhttp": [
+  "users": [
     {
-      "id": "8b89",
-      "content": "Olá mundo"
-    },
-    {
-      "id": "bd08",
-      "content": "Olá mundo"
-    },
-    {
-      "id": "4107",
-      "content": "Olá mundo"
+      "email": "tallyswiterf@gmail.com",
+      "password": "$2a$10$7Bg3HnuKKaNqgSg5WPPRGuz0MlPOpb.ylBbMC4ZTFSXk.Xueun6xO",
+      "id": 1
     }
   ],
+  "learnhttp": [],
   "journals": [
     {
-      "id": "6f321180-365f-11ef-8a55-57060c663ce6",
-      "content": "Texto de teste. ",
-      "created_At": "2024-06-29 21:34:53.937825",
-      "updated_At": "2024-06-29 21:34:53.937825"
+      "id": "52c0c370-4c3f-11ef-8a3b-89a5653b7166",
+      "content": "Vôlei brasileiro ",
+      "created_At": "2024-07-25 17:39:45.728537",
+      "updated_At": "2024-07-25 17:39:45.728537"
+    },
+    {
+      "id": "a373e1b0-4c50-11ef-8a3b-89a5653b7166",
+      "content": "😁😁😁😁😁😁😁😁",
+      "created_At": "2024-07-26 17:39:45.728537",
+      "updated_At": "2024-07-26 17:39:45.728537"
     }
   ]
 }
