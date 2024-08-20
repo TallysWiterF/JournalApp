@@ -24,16 +24,14 @@ class AuthService {
         body: {'email': email, 'password': password});
 
     if (response.statusCode != 200) {
-      String content = json.decode(response.body);
-
-      switch (content) {
-        case "Cannot find user":
-          throw UserNotFindException();
+      if (json.decode(response.body) == "Cannot find user") {
+        throw UserNotFindException();
       }
 
       throw HttpException(response.body);
     }
 
+    saveUserInfos(response.body);
     return true;
   }
 
@@ -43,18 +41,19 @@ class AuthService {
     http.Response response = await client.post(Uri.parse(getUrl()),
         body: {'email': email, 'password': password});
 
-    if (response.statusCode != 200) {
-      String content = json.decode(response.body);
+    if (response.statusCode != 201) throw HttpException(response.body);
 
-      switch (content) {
-        case "Cannot find user":
-          throw UserNotFindException();
-      }
+    saveUserInfos(response.body);
+  }
 
-      throw HttpException(response.body);
-    }
+  saveUserInfos(String body) {
+    Map<String, dynamic> map = json.decode(body);
+    String token = map["accessToken"];
+    String email = map["user"]["email"];
+    int id = map["user"]["id"];
 
-    return response.statusCode == 200;
+    //TODO: Salvar localmente os dados do usuário logado
+    print("$token\n$email\n$id");
   }
 }
 

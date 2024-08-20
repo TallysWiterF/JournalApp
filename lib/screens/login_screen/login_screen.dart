@@ -64,9 +64,9 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  login(BuildContext context) {
+  login(BuildContext context) async {
     try {
-      authService.login(
+      await authService.login(
           email: _emailController.text, password: _passController.text);
     } on UserNotFindException {
       showConfirmationDialog(context,
