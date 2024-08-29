@@ -10,7 +10,7 @@ class AuthService {
   //Alterar localhost pelo ip
   static const String url = 'http://localhost:3000/';
 
-  static String _resource = "login/";
+  static String _resource = "";
 
   String getUrl() => "$url$_resource";
 
@@ -31,7 +31,7 @@ class AuthService {
       throw HttpException(response.body);
     }
 
-    saveUserInfos(response.body);
+    saveUserInfos(jsonDecode(response.body));
     return true;
   }
 
@@ -44,12 +44,12 @@ class AuthService {
 
     if (response.statusCode != 201) throw HttpException(response.body);
 
-    saveUserInfos(response.body);
+    saveUserInfos(jsonDecode(response.body));
+
     return true;
   }
 
-  saveUserInfos(String body) async {
-    Map<String, dynamic> map = json.decode(body);
+  saveUserInfos(Map<String, dynamic> map) async {
     String token = map["accessToken"];
     String email = map["user"]["email"];
     int id = map["user"]["id"];
