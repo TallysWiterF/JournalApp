@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webapi_first_course/helpers/weekday.dart';
 import 'package:flutter_webapi_first_course/models/journal.dart';
 import 'package:flutter_webapi_first_course/services/journal_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddJournalScreen extends StatelessWidget {
   final Journal journal;
@@ -42,11 +43,16 @@ class AddJournalScreen extends StatelessWidget {
 
   String get getJournalDate => WeekDay(journal.createdAt).toString();
 
-  registerJournal(BuildContext context) async {
+  registerJournal(BuildContext context) {
     JournalService service = JournalService();
 
-    isEditing
-        ? Navigator.pop(context, await service.edit(journal.id, journal))
-        : Navigator.pop(context, await service.register(journal));
+    SharedPreferences.getInstance().then((prefs) {
+      String? token = prefs.getString("accessToken");
+      if (token != null) {
+        isEditing
+            ? Navigator.pop(context, service.edit(journal.id, journal, token))
+            : Navigator.pop(context, service.register(journal, token));
+      }
+    });
   }
 }

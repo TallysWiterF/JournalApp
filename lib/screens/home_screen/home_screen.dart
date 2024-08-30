@@ -23,7 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, Journal> database = {};
 
   final ScrollController _listScrollController = ScrollController();
+
   JournalService service = JournalService();
+
+  int? userId;
 
   @override
   void initState() {
@@ -39,20 +42,23 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(
         "${currentDay.day}  |  ${currentDay.month}  |  ${currentDay.year}",
       )),
-      body: RefreshIndicator(
-        color: Colors.amber[800],
-        onRefresh: () async {
-          refresh();
-        },
-        child: ListView(
-          controller: _listScrollController,
-          children: generateListJournalCards(
-              windowPage: windowPage,
-              currentDay: currentDay,
-              database: database,
-              refreshFunction: refresh),
-        ),
-      ),
+      body: (userId != null)
+          ? RefreshIndicator(
+              color: Colors.amber[800],
+              onRefresh: () async {
+                refresh();
+              },
+              child: ListView(
+                controller: _listScrollController,
+                children: generateListJournalCards(
+                    windowPage: windowPage,
+                    currentDay: currentDay,
+                    database: database,
+                    refreshFunction: refresh,
+                    userId: userId!),
+              ),
+            )
+          : const Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -65,6 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
       if (token == null || email == null || id == null) {
         Navigator.pushReplacementNamed(context, "login");
       }
+
+      setState(() {
+        userId = id;
+      });
 
       service.getAll(id: id!, token: token!).then((List<Journal> listJournal) {
         setState(() {

@@ -3,17 +3,20 @@ import 'package:flutter_webapi_first_course/helpers/weekday.dart';
 import 'package:flutter_webapi_first_course/models/journal.dart';
 import 'package:flutter_webapi_first_course/screens/commom/confirmate_dialog.dart';
 import 'package:flutter_webapi_first_course/services/journal_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class JournalCard extends StatelessWidget {
   final Journal? journal;
   final DateTime showedDate;
   final Function refreshFunction;
+  final int userId;
   const JournalCard(
       {Key? key,
       this.journal,
       required this.showedDate,
-      required this.refreshFunction})
+      required this.refreshFunction,
+      required this.userId})
       : super(key: key);
 
   @override
@@ -119,7 +122,8 @@ class JournalCard extends StatelessWidget {
             id: const Uuid().v1(),
             content: "",
             createdAt: showedDate,
-            updatedAt: showedDate);
+            updatedAt: showedDate,
+            userId: userId);
 
     Map<String, dynamic> map = {};
     map['journal'] = innerJournal;
@@ -152,12 +156,17 @@ class JournalCard extends StatelessWidget {
     ).then((value) => {
           if (value != null && value)
             {
-              service.delete(journal!.id).then((value) {
-                if (value) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Removido com sucesso!")));
+              SharedPreferences.getInstance().then((prefs) {
+                String? token = prefs.getString("accessToken");
+                if (token != null) {
+                  service.delete(journal!.id, token).then((value) {
+                    if (value) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text("Removido com sucesso!")));
 
-                  refreshFunction();
+                      refreshFunction();
+                    }
+                  });
                 }
               })
             }
