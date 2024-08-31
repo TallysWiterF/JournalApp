@@ -1,13 +1,16 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_webapi_first_course/screens/commom/confirmate_dialog.dart';
+import 'package:flutter_webapi_first_course/screens/commom/exception_dialog.dart';
 import 'package:flutter_webapi_first_course/services/auth_service.dart';
 
-// ignore: must_be_immutable
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
-  AuthService authService = AuthService();
+  final AuthService authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -65,30 +68,41 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  login(BuildContext context) async {
-    try {
-      await authService
-          .login(email: _emailController.text, password: _passController.text)
-          .then((resultLogin) {
+  login(BuildContext context) {
+    authService
+        .login(email: _emailController.text, password: _passController.text)
+        .then(
+      (resultLogin) {
         if (resultLogin) navigateToHomeScreen(context);
-      });
-    } on UserNotFindException {
-      // ignore: use_build_context_synchronously
-      showConfirmationDialog(context,
-              content:
-                  "Esse usuário não está cadastrado! Deseja realizar o cadastro?",
-              affirmativeOption: "Criar")
-          .then((value) => {
-                if (value)
-                  authService
-                      .register(
-                          email: _emailController.text,
-                          password: _passController.text)
-                      .then((resultRegister) {
-                    if (resultRegister) navigateToHomeScreen(context);
-                  })
-              });
-    }
+      },
+    ).catchError(
+      (error) {
+        showExceptionDialog(context, content: error.message);
+      },
+      test: (error) => error is HttpException,
+    ).catchError(
+      (error) {
+        showConfirmationDialog(context,
+                content:
+                    "Esse usuário não está cadastrado! Deseja realizar o cadastro?",
+                affirmativeOption: "Criar")
+            .then((value) => {
+                  if (value)
+                    authService
+                        .register(
+                            email: _emailController.text,
+                            password: _passController.text)
+                        .then((resultRegister) {
+                      if (resultRegister) navigateToHomeScreen(context);
+                    })
+                });
+      },
+      test: (error) => error is UserNotFindException,
+    ).catchError((error) {
+      showExceptionDialog(context,
+          content:
+              "O servidor demorou para responder, tente novamente mais tarde.");
+    }, test: (error) => error is TimeoutException);
   }
 
   void navigateToHomeScreen(BuildContext context) {

@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_webapi_first_course/helpers/logout.dart';
+import 'package:flutter_webapi_first_course/screens/commom/exception_dialog.dart';
 import 'package:flutter_webapi_first_course/screens/home_screen/widgets/home_screen_list.dart';
 import 'package:flutter_webapi_first_course/services/journal_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   JournalService service = JournalService();
 
   int? userId;
+  String? userToken;
 
   @override
   void initState() {
@@ -38,11 +43,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          // Título basado no dia atual
-          title: Text(
-        "${currentDay.day}  |  ${currentDay.month}  |  ${currentDay.year}",
-      )),
-      body: (userId != null)
+        // Título basado no dia atual
+        title: Text(
+          "${currentDay.day}  |  ${currentDay.month}  |  ${currentDay.year}",
+        ),
+        actions: [
+          IconButton(
+              onPressed: () {
+                logout(context);
+              },
+              icon: const Icon(Icons.logout))
+        ],
+      ),
+      body: (userId != null && userToken != null)
           ? RefreshIndicator(
               color: Colors.amber[800],
               onRefresh: () async {
@@ -55,7 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     currentDay: currentDay,
                     database: database,
                     refreshFunction: refresh,
-                    userId: userId!),
+                    userId: userId!,
+                    token: userToken!),
               ),
             )
           : const Center(child: CircularProgressIndicator()),
@@ -74,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         userId = id;
+        userToken = token;
       });
 
       service.getAll(id: id!, token: token!).then((List<Journal> listJournal) {
@@ -83,7 +98,14 @@ class _HomeScreenState extends State<HomeScreen> {
             database[journal.id] = journal;
           }
         });
-      });
+      }).catchError(
+        (error) {
+          showExceptionDialog(context, content: error.message);
+        },
+        test: (error) => error is HttpException,
+      ).catchError((error) {
+        logout(context);
+      }, test: (error) => error is TokenNotValidException);
     });
   }
 }

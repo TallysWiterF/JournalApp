@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_webapi_first_course/helpers/logout.dart';
 import 'package:flutter_webapi_first_course/helpers/weekday.dart';
 import 'package:flutter_webapi_first_course/models/journal.dart';
+import 'package:flutter_webapi_first_course/screens/commom/exception_dialog.dart';
 import 'package:flutter_webapi_first_course/services/journal_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,8 +54,32 @@ class AddJournalScreen extends StatelessWidget {
       String? token = prefs.getString("accessToken");
       if (token != null) {
         isEditing
-            ? Navigator.pop(context, service.edit(journal.id, journal, token))
-            : Navigator.pop(context, service.register(journal, token));
+            ? Navigator.pop(
+                context,
+                service
+                    .edit(journal.id, journal, token)
+                    .then((value) => null)
+                    .catchError(
+                  (error) {
+                    showExceptionDialog(context, content: error.message);
+                  },
+                  test: (error) => error is HttpException,
+                ).catchError((error) {
+                  logout(context);
+                }, test: (error) => error is TokenNotValidException))
+            : Navigator.pop(
+                context,
+                service
+                    .register(journal, token)
+                    .then((value) => null)
+                    .catchError(
+                  (error) {
+                    showExceptionDialog(context, content: error.message);
+                  },
+                  test: (error) => error is HttpException,
+                ).catchError((error) {
+                  logout(context);
+                }, test: (error) => error is TokenNotValidException));
       }
     });
   }

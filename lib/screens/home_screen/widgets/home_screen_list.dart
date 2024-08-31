@@ -6,14 +6,16 @@ List<JournalCard> generateListJournalCards(
     required DateTime currentDay,
     required Map<String, Journal> database,
     required Function refreshFunction,
-    required int userId}) {
+    required int userId,
+    required String token}) {
   // Cria uma lista de Cards vazios
   List<JournalCard> list = List.generate(
     windowPage + 1,
     (index) => JournalCard(
         refreshFunction: refreshFunction,
         showedDate: currentDay.subtract(Duration(days: (windowPage) - index)),
-        userId: userId),
+        userId: userId,
+        token: token),
   );
 
   //Preenche os espaços que possuem entradas no banco
@@ -26,11 +28,11 @@ List<JournalCard> generateListJournalCards(
           .abs();
 
       list[difference] = JournalCard(
-        refreshFunction: refreshFunction,
-        showedDate: list[difference].showedDate,
-        journal: value,
-        userId: userId,
-      );
+          refreshFunction: refreshFunction,
+          showedDate: list[difference].showedDate,
+          journal: value,
+          userId: userId,
+          token: token);
     }
   });
   return list;

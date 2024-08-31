@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_webapi_first_course/helpers/logout.dart';
 import 'package:flutter_webapi_first_course/helpers/weekday.dart';
 import 'package:flutter_webapi_first_course/models/journal.dart';
 import 'package:flutter_webapi_first_course/screens/commom/confirmate_dialog.dart';
+import 'package:flutter_webapi_first_course/screens/commom/exception_dialog.dart';
 import 'package:flutter_webapi_first_course/services/journal_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class JournalCard extends StatelessWidget {
@@ -11,12 +14,14 @@ class JournalCard extends StatelessWidget {
   final DateTime showedDate;
   final Function refreshFunction;
   final int userId;
+  final String token;
   const JournalCard(
       {Key? key,
       this.journal,
       required this.showedDate,
       required this.refreshFunction,
-      required this.userId})
+      required this.userId,
+      required this.token})
       : super(key: key);
 
   @override
@@ -135,30 +140,26 @@ class JournalCard extends StatelessWidget {
       arguments: map,
     ).then((value) {
       refreshFunction();
-      if (value == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Registro feito com sucesso!")));
-      } else if (value == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Houve uma falha ao registrar!")));
-      }
-    });
+    }).catchError(
+      (error) {
+        showExceptionDialog(context, content: error.message);
+      },
+      test: (error) => error is HttpException,
+    ).catchError((error) {
+      logout(context);
+    }, test: (error) => error is TokenNotValidException);
   }
 
   removeJournal(BuildContext context) {
     JournalService service = JournalService();
 
-    showConfirmationDialog(
-      context,
-      content:
-          "Deseja realmente remover o diário do dia ${WeekDay(journal!.createdAt)}?",
-      affirmativeOption: "Remover",
-    ).then((value) => {
-          if (value != null && value)
-            {
-              SharedPreferences.getInstance().then((prefs) {
-                String? token = prefs.getString("accessToken");
-                if (token != null) {
+    showConfirmationDialog(context,
+            content:
+                "Deseja realmente remover o diário do dia ${WeekDay(journal!.createdAt)}?",
+            affirmativeOption: "Remover")
+        .then((value) => {
+              if (value != null && value)
+                {
                   service.delete(journal!.id, token).then((value) {
                     if (value) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -166,10 +167,15 @@ class JournalCard extends StatelessWidget {
 
                       refreshFunction();
                     }
-                  });
+                  }).catchError(
+                    (error) {
+                      showExceptionDialog(context, content: error.message);
+                    },
+                    test: (error) => error is HttpException,
+                  ).catchError((error) {
+                    logout(context);
+                  }, test: (error) => error is TokenNotValidException)
                 }
-              })
-            }
-        });
+            });
   }
 }

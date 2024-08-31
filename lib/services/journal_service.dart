@@ -1,19 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_webapi_first_course/models/journal.dart';
-import 'package:flutter_webapi_first_course/services/http_interceptors.dart';
+import 'package:flutter_webapi_first_course/services/webclient.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_interceptor/http/http.dart';
 
 class JournalService {
-  //Alterar localhost pelo ip
-  static const String url = 'http://localhost:3000/';
+  static const String url = WebClient.url;
+  http.Client client = WebClient().client;
 
   static const String resource = "journals/";
 
   String getUrl() => "$url$resource";
-
-  http.Client client =
-      InterceptedClient.build(interceptors: [LoggingInterceptor()]);
 
   Future<bool> register(Journal journal, String token) async {
     String jsonJournal = json.encode(journal.toMap());
@@ -24,10 +21,12 @@ class JournalService {
         },
         body: jsonJournal);
 
-    return response.statusCode == 201;
+    return validateStatusCode(response, HttpStatus.created);
   }
 
   Future<bool> edit(String id, Journal journal, String token) async {
+    journal.updatedAt = DateTime.now();
+
     String jsonJournal = json.encode(journal.toMap());
 
     http.Response response = await client.put(Uri.parse(getUrl() + id),
@@ -37,7 +36,7 @@ class JournalService {
         },
         body: jsonJournal);
 
-    return response.statusCode == 200;
+    return validateStatusCode(response, HttpStatus.ok);
   }
 
   Future<bool> delete(String id, String token) async {
@@ -47,7 +46,7 @@ class JournalService {
           "Authorization": "Bearer $token"
         });
 
-    return response.statusCode == 200;
+    return validateStatusCode(response, HttpStatus.ok);
   }
 
   Future<List<Journal>> getAll({required int id, required String token}) async {
@@ -55,7 +54,7 @@ class JournalService {
         Uri.parse("${url}users/$id/journals"),
         headers: {"Authorization": "Bearer $token"});
 
-    if (response.statusCode != 200) throw Exception();
+    validateStatusCode(response, HttpStatus.ok);
 
     List<Journal> listJournal = [];
     List<dynamic> listDynamic = jsonDecode(response.body);
@@ -66,4 +65,18 @@ class JournalService {
 
     return listJournal;
   }
+
+  bool validateStatusCode(http.Response response, int statusCode) {
+    if (response.statusCode != statusCode) {
+      if (json.decode(response.body) == "jwt expired") {
+        throw TokenNotValidException();
+      }
+
+      throw HttpException(response.body);
+    }
+
+    return true;
+  }
 }
+
+class TokenNotValidException implements Exception {}
